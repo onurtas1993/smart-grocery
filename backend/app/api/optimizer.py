@@ -2,7 +2,7 @@ from datetime import date
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_
+from sqlalchemy import and_, text
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -155,3 +155,41 @@ def optimize_grocery_list(
         stores=used_stores,
         items=assignments,
     )
+
+
+@router.get("/search/products", response_model=List[schemas.ItemAssignment])
+def search_products(
+    name: str = Query(..., description="Search term to find products containing the given name."),
+    store: str = Query(None, description="Optional store name to filter results (e.g., ALDI, LIDL)."),
+    db: Session = Depends(get_db),
+):
+    """
+    Search for products containing the given name in their product name.
+    Optionally filter results by store name.
+    """
+    sql_query = text("""
+        SELECT DISTINCT product_name, store_name, price, id
+        FROM store_offers
+        WHERE LOWER(product_name) LIKE :pattern
+    """)
+    params = {"pattern": f"%{name.lower()}%"}
+
+    if store:
+        sql_query = text(f"{sql_query} AND LOWER(store_name) = :store")
+        params["store"] = store.lower()
+
+    # Use `db.execute()` with `mappings()` to return rows as dictionaries
+    rows = db.execute(sql_query, params).mappings().all()
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No products found matching the query.")
+
+    return [
+        schemas.ItemAssignment(
+            product_name=row["product_name"],
+            store_name=row["store_name"],
+            price=float(row["price"]),
+            offer_id=row["id"],
+        )
+        for row in rows
+    ]
