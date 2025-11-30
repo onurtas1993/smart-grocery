@@ -193,3 +193,22 @@ def search_products(
         )
         for row in rows
     ]
+
+
+@router.get("/stores", response_model=List[str])
+def get_stores(db: Session = Depends(get_db)):
+    """
+    Get a list of all distinct store names.
+    """
+    sql_query = text("""
+        SELECT DISTINCT store_name
+        FROM store_offers
+        ORDER BY store_name
+    """)
+
+    rows = db.execute(sql_query).fetchall()
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No stores found.")
+
+    return [row[0] for row in rows]
