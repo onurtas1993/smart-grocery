@@ -212,3 +212,30 @@ def get_stores(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No stores found.")
 
     return [row[0] for row in rows]
+
+
+@router.get("/products", response_model=List[schemas.ItemAssignment])
+def get_all_products(db: Session = Depends(get_db)):
+    """
+    Get a list of all distinct products with their details.
+    """
+    sql_query = text("""
+        SELECT DISTINCT ON (product_name) product_name, store_name, price, id
+        FROM store_offers
+        ORDER BY product_name, id
+    """)
+
+    rows = db.execute(sql_query).mappings().all()
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No products found.")
+
+    return [
+        schemas.ItemAssignment(
+            product_name=row["product_name"],
+            store_name=row["store_name"],
+            price=float(row["price"]),
+            offer_id=row["id"],
+        )
+        for row in rows
+    ]
