@@ -1,3 +1,5 @@
+# NOT READY - BEING DEVELOPED
+
 <table>
   <tr>
     <td>
@@ -17,7 +19,7 @@ a unified app and backend system that finds the best store combinations for a us
 
 ## Components
 
-This repo consists of 3 components:
+This app consists of 3 components:
 
 - Frontend: Android client
 - Backend: RESTful webservice
