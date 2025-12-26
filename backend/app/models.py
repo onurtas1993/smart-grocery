@@ -12,5 +12,6 @@ class StoreOffer(Base):
     quantity = Column(Numeric, nullable=False)     # e.g. 12
     unit = Column(Text, nullable=False)            # e.g. 'pieces'
     price = Column(Numeric, nullable=False)        # e.g. 1.0 (EUR)
-    valid_from = Column(Date, nullable=True)       # offer start date (can be NULL)
+    valid_from = Column(Date, nullable=False)       # offer start date (can be NULL)
     valid_until = Column(Date, nullable=False)     # offer expiry date
+    image = Column(Text, nullable=True)            # optional URL to product image

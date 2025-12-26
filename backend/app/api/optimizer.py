@@ -102,6 +102,11 @@ def optimize_grocery_list(
                         store_name=store,
                         price=price_f,
                         offer_id=offer.id,
+                        quantity=float(offer.quantity),
+                        unit=offer.unit,
+                        valid_from=offer.valid_from,
+                        valid_until=offer.valid_until,
+                        image=offer.image,
                     )
                 )
 
@@ -144,6 +149,11 @@ def optimize_grocery_list(
                 store_name=offer.store_name,
                 price=price_f,
                 offer_id=offer.id,
+                quantity=float(offer.quantity),
+                unit=offer.unit,
+                valid_from=offer.valid_from,
+                valid_until=offer.valid_until,
+                image=offer.image,
             )
         )
         if offer.store_name not in used_stores:
@@ -167,16 +177,18 @@ def search_products(
     Search for products containing the given name in their product name.
     Optionally filter results by store name.
     """
-    sql_query = text("""
-        SELECT DISTINCT product_name, store_name, price, id
+    sql = """
+        SELECT DISTINCT product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
         FROM store_offers
         WHERE LOWER(product_name) LIKE :pattern
-    """)
+    """
     params = {"pattern": f"%{name.lower()}%"}
 
     if store:
-        sql_query = text(f"{sql_query} AND LOWER(store_name) = :store")
+        sql += " AND LOWER(store_name) = :store"
         params["store"] = store.lower()
+
+    sql_query = text(sql)
 
     # Use `db.execute()` with `mappings()` to return rows as dictionaries
     rows = db.execute(sql_query, params).mappings().all()
@@ -190,6 +202,11 @@ def search_products(
             store_name=row["store_name"],
             price=float(row["price"]),
             offer_id=row["id"],
+            quantity=float(row["quantity"]),
+            unit=row["unit"],
+            valid_from=row["valid_from"],
+            valid_until=row["valid_until"],
+            image=row.get("image"),
         )
         for row in rows
     ]
@@ -220,7 +237,8 @@ def get_all_products(db: Session = Depends(get_db)):
     Get a list of all distinct products with their details.
     """
     sql_query = text("""
-        SELECT DISTINCT ON (product_name) product_name, store_name, price, id
+        SELECT DISTINCT ON (product_name)
+            product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
         FROM store_offers
         ORDER BY product_name, id
     """)
@@ -236,6 +254,11 @@ def get_all_products(db: Session = Depends(get_db)):
             store_name=row["store_name"],
             price=float(row["price"]),
             offer_id=row["id"],
+            quantity=float(row["quantity"]),
+            unit=row["unit"],
+            valid_from=row["valid_from"],
+            valid_until=row["valid_until"],
+            image=row.get("image"),
         )
         for row in rows
     ]
