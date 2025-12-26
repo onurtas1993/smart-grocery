@@ -28,9 +28,9 @@ class MainActivityViewModel : ViewModel() {
         val currentEntry = newBasket[product.id]
 
         if (currentEntry != null) {
-            val newQuantity = currentEntry.second - 1
-            if (newQuantity > 0) {
-                newBasket[product.id] = Pair(product, newQuantity)
+            val quantity = currentEntry.second
+            if (quantity != 1) {
+                newBasket[product.id] = Pair(product, quantity - 1)
             } else {
                 newBasket.remove(product.id)
             }

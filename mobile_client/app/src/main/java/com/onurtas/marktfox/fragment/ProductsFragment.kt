@@ -81,9 +81,16 @@ class ProductsFragment : Fragment(), ProductBasketListener {
         }
 
         mainActivityViewModel.basket.observe(viewLifecycleOwner) { basket ->
-            // Update quantities for all visible products.
-            // If a product is not in the basket, its quantity will not be updated,
-            // which is handled by the adapter's getOrDefault.
+            val productIdsInBasket = basket.keys
+
+            // Reset the quantity for any product that is no longer in the basket
+            productAdapter.getAllProductIds().forEach { productId ->
+                if (productId !in productIdsInBasket) {
+                    productAdapter.updateProductQuantity(productId, 0)
+                }
+            }
+
+            // Update the quantity for all items that are in the basket
             basket.forEach { (productId, entry) ->
                 val newQuantity = entry.second
                 productAdapter.updateProductQuantity(productId, newQuantity)
