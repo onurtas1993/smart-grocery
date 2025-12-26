@@ -10,6 +10,9 @@ class MainActivityViewModel : ViewModel() {
     private val _basket = MutableLiveData<Map<Int, Pair<Product, Int>>>(emptyMap())
     val basket: LiveData<Map<Int, Pair<Product, Int>>> = _basket
 
+    private val _totalCost = MutableLiveData<Double>(0.0)
+    val totalCost: LiveData<Double> = _totalCost
+
     fun addProductToBasket(product: Product) {
         val newBasket = _basket.value?.toMutableMap() ?: mutableMapOf()
         val currentEntry = newBasket[product.id]
@@ -17,6 +20,7 @@ class MainActivityViewModel : ViewModel() {
 
         newBasket[product.id] = Pair(product, currentQuantity + 1)
         _basket.postValue(newBasket)
+        calculateTotalCost(newBasket)
     }
 
     fun removeProductFromBasket(product: Product) {
@@ -31,6 +35,14 @@ class MainActivityViewModel : ViewModel() {
                 newBasket.remove(product.id)
             }
             _basket.postValue(newBasket)
+            calculateTotalCost(newBasket)
         }
+    }
+
+    private fun calculateTotalCost(basket: Map<Int, Pair<Product, Int>>) {
+        val total = basket.values.sumOf { (product, quantity) ->
+            product.price * quantity
+        }
+        _totalCost.postValue(total)
     }
 }

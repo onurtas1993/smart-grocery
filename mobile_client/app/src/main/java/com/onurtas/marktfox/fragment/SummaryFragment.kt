@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.onurtas.marktfox.R
 import com.onurtas.marktfox.adapter.SummaryAdapter
 import com.onurtas.marktfox.viewmodel.MainActivityViewModel
+import java.util.Locale
 
 class SummaryFragment : Fragment() {
 
@@ -20,6 +21,8 @@ class SummaryFragment : Fragment() {
     private lateinit var summaryAdapter: SummaryAdapter
     private lateinit var summaryRecyclerView: RecyclerView
     private lateinit var emptyBasketText: TextView
+    private lateinit var totalCostValue: TextView
+    private lateinit var totalCostLabel: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,6 +31,8 @@ class SummaryFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_summary, container, false)
         summaryRecyclerView = view.findViewById(R.id.summaryRecyclerView)
         emptyBasketText = view.findViewById(R.id.emptyBasketText)
+        totalCostValue = view.findViewById(R.id.totalCostValue)
+        totalCostLabel = view.findViewById(R.id.totalCostLabel)
         setupRecyclerView()
         return view
     }
@@ -49,8 +54,14 @@ class SummaryFragment : Fragment() {
         mainActivityViewModel.basket.observe(viewLifecycleOwner) { basket ->
             val hasItems = basket.isNotEmpty()
             summaryRecyclerView.isVisible = hasItems
+            totalCostLabel.isVisible = hasItems
+            totalCostValue.isVisible = hasItems
             emptyBasketText.isVisible = !hasItems
             summaryAdapter.updateItems(basket)
+        }
+
+        mainActivityViewModel.totalCost.observe(viewLifecycleOwner) { total ->
+            totalCostValue.text = String.format(Locale.GERMANY, "€%.2f", total)
         }
     }
 }
