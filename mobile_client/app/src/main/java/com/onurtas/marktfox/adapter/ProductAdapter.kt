@@ -2,44 +2,90 @@ package com.onurtas.marktfox.adapter
 
 import android.view.LayoutInflater
 import android.view.View
+
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.onurtas.marktfox.R
 import com.onurtas.marktfox.model.Product
+import java.util.Locale
 
-class ProductAdapter(private var products: List<Product>) :
-    RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+class ProductAdapter(
+    private var products: List<Product>,
+    private val listener: ProductBasketListener
+) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
-    // Describes an item view and its metadata within the RecyclerView.
+    private val basketQuantities = mutableMapOf<Int, Int>()
+
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imageView: ImageView = itemView.findViewById(R.id.productImage)
         private val titleTextView: TextView = itemView.findViewById(R.id.productTitle)
         private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
+        private val storeTextView: TextView = itemView.findViewById(R.id.storeName)
+        private val quantityTextView: TextView = itemView.findViewById(R.id.quantityText)
+        private val addButton: Button = itemView.findViewById(R.id.addButton)
+        private val removeButton: Button = itemView.findViewById(R.id.removeButton)
+        val basketQuantity: TextView = itemView.findViewById(R.id.basketQuantity)
 
-        fun bind(product: Product) {
+        fun bind(
+            product: Product,
+            currentQuantity: Int,
+            listener: ProductBasketListener
+        ) {
+            imageView.load(product.image) {
+                crossfade(true)
+                placeholder(R.drawable.ic_launcher_background)
+                error(R.drawable.ic_launcher_foreground)
+            }
+
             titleTextView.text = product.title
-            priceTextView.text = String.format("€%.2f", product.price)
+            priceTextView.text = String.format(Locale.GERMANY, "€%.2f", product.price)
+            storeTextView.text = product.store
+
+            val quantityString = if (product.quantity == product.quantity.toInt().toDouble()) {
+                String.format("%d %s", product.quantity.toInt(), product.unit)
+            } else {
+                String.format(Locale.GERMANY, "%.2f %s", product.quantity, product.unit)
+            }
+            quantityTextView.text = quantityString
+            basketQuantity.text = currentQuantity.toString()
+
+            addButton.setOnClickListener { listener.onProductAdded(product) }
+            removeButton.setOnClickListener { listener.onProductRemoved(product) }
         }
     }
 
-    // Creates new views (invoked by the layout manager).
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_product, parent, false)
         return ProductViewHolder(view)
     }
 
-    // Replaces the contents of a view (invoked by the layout manager).
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        holder.bind(products[position])
+        val product = products[position]
+        val currentQuantity = basketQuantities.getOrDefault(product.id, 0)
+        holder.bind(product, currentQuantity, listener)
     }
 
-    // Returns the size of your dataset (invoked by the layout manager).
     override fun getItemCount() = products.size
 
-    // Helper function to update the data in the adapter.
     fun updateProducts(newProducts: List<Product>) {
         products = newProducts
-        notifyDataSetChanged() // Notifies the adapter that the data set has changed.
+        notifyDataSetChanged()
+    }
+
+    fun updateProductQuantity(productId: Int, newQuantity: Int) {
+        basketQuantities[productId] = newQuantity
+        val index = products.indexOfFirst { it.id == productId }
+        if (index != -1) {
+            notifyItemChanged(index)
+        }
+    }
+
+    fun getAllProductIds(): List<Int> {
+        return products.map { it.id }
     }
 }

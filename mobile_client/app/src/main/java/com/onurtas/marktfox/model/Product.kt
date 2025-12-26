@@ -3,7 +3,7 @@ package com.onurtas.marktfox.model
 import com.google.gson.annotations.SerializedName
 
 data class Product(
-    @SerializedName("id")
+    @SerializedName("offer_id")
     val id: Int,
 
     @SerializedName("product_name")
