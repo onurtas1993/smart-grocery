@@ -41,6 +41,16 @@
             app:layout_constraintTop_toBottomOf="@id/productImage"
             tools:text="Premium Grade Fresh Orange" />
 
+
+        <TextView
+            android:id="@+id/quantityText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintBaseline_toBottomOf="@id/addRemoveLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="400 gram" />
+
         <LinearLayout
             android:id="@+id/addRemoveLayout"
             android:layout_width="wrap_content"
