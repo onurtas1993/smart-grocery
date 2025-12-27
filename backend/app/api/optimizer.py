@@ -38,6 +38,8 @@ def optimize_grocery_list(
 
     today = date.today()
     requested_names = [item.name for item in payload.items]
+    # Map product name -> requested quantity
+    requested_qty: Dict[str, float] = {item.name: float(item.quantity) for item in payload.items}
 
     # Fetch all offers for requested products that are still valid
     offers = (
@@ -95,14 +97,15 @@ def optimize_grocery_list(
             for name in requested_names:
                 offer = products_map[name]
                 price_f = float(offer.price)
-                total += price_f
+                qty_req = requested_qty.get(name, 1.0)
+                total += price_f * qty_req
                 assignments.append(
                     schemas.ItemAssignment(
                         product_name=name,
                         store_name=store,
                         price=price_f,
                         offer_id=offer.id,
-                        quantity=float(offer.quantity),
+                        quantity=qty_req,
                         unit=offer.unit,
                         valid_from=offer.valid_from,
                         valid_until=offer.valid_until,
@@ -142,14 +145,15 @@ def optimize_grocery_list(
             )
 
         price_f = float(offer.price)
-        total += price_f
+        qty_req = requested_qty.get(name, 1.0)
+        total += price_f * qty_req
         assignments.append(
             schemas.ItemAssignment(
                 product_name=name,
                 store_name=offer.store_name,
                 price=price_f,
                 offer_id=offer.id,
-                quantity=float(offer.quantity),
+                quantity=qty_req,
                 unit=offer.unit,
                 valid_from=offer.valid_from,
                 valid_until=offer.valid_until,
@@ -170,7 +174,6 @@ def optimize_grocery_list(
 @router.get("/search/products", response_model=List[schemas.ItemAssignment])
 def search_products(
     name: str = Query(..., description="Search term to find products containing the given name."),
-    store: str = Query(None, description="Optional store name to filter results (e.g., ALDI, LIDL)."),
     distinct: bool = Query(True, description="Return only distinct rows (uses SQL DISTINCT when true)."),
     db: Session = Depends(get_db),
 ):
@@ -178,27 +181,24 @@ def search_products(
     Search for products containing the given name in their product name.
     Optionally filter results by store name.
     """
-    if distinct:
-        # Use PostgreSQL DISTINCT ON to return one row per product_name.
-        # Order by product_name then id to pick a deterministic row per product.
-        sql = """
-            SELECT DISTINCT ON (product_name)
-                product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
-            FROM store_offers
-            WHERE LOWER(product_name) LIKE :pattern
-            ORDER BY product_name, id
-        """
-    else:
-        sql = """
-            SELECT product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
-            FROM store_offers
-            WHERE LOWER(product_name) LIKE :pattern
-        """
+    base_where = "WHERE LOWER(product_name) LIKE :pattern"
     params = {"pattern": f"%{name.lower()}%"}
 
-    if store:
-        sql += " AND LOWER(store_name) = :store"
-        params["store"] = store.lower()
+    if distinct:
+        # Return one row per (product_name, quantity). Order to pick a deterministic row.
+        sql = f"""
+            SELECT DISTINCT ON (product_name, quantity)
+                product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
+            FROM store_offers
+            {base_where}
+            ORDER BY product_name, quantity, id
+        """
+    else:
+        sql = f"""
+            SELECT product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
+            FROM store_offers
+            {base_where}
+        """
 
     sql_query = text(sql)
 
