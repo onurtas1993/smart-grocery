@@ -37,8 +37,7 @@ class ProductAdapter(
         ) {
             imageView.load(product.image) {
                 crossfade(true)
-                placeholder(R.drawable.ic_launcher_background)
-                error(R.drawable.ic_launcher_foreground)
+                error(R.drawable.ic_launcher_background)
             }
 
             titleTextView.text = product.title
