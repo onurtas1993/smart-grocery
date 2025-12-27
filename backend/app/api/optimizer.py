@@ -163,10 +163,6 @@ def optimize_grocery_list(
                 req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
                 offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
 
-                packages = 1
-                package_size = float(offer.quantity)
-                package_unit = offer.unit
-
                 if req_base_unit == offer_base_unit and offer_qty_base > 0:
                     packages = math.ceil(req_qty_base / offer_qty_base)
                     cost = price_f * packages
@@ -182,8 +178,27 @@ def optimize_grocery_list(
                         cost = price_f * qty_req
 
                 total += cost
-                assignments.append(
-                    schemas.ItemAssignment(
+                # If units align (same base unit or same normalized unit), return the
+                # offer package size as the assignment quantity and set package_count
+                # to the required number of packages. Otherwise return the requested
+                # quantity and package_count=1.
+                normalized_req_unit = _normalize_unit(req_unit or "")
+                normalized_offer_unit = _normalize_unit(offer.unit or "")
+                if req_base_unit == offer_base_unit or normalized_req_unit == normalized_offer_unit:
+                            item = schemas.ItemAssignment(
+                                product_name=name,
+                                store_name=store,
+                                price=price_f,
+                                offer_id=offer.id,
+                                quantity=float(offer.quantity),
+                                unit=offer.unit,
+                                valid_from=offer.valid_from,
+                                valid_until=offer.valid_until,
+                                image=offer.image,
+                            )
+                            assignments.append(schemas.AssignedProduct(product=item, required_packages=packages))
+                else:
+                    item = schemas.ItemAssignment(
                         product_name=name,
                         store_name=store,
                         price=price_f,
@@ -193,11 +208,8 @@ def optimize_grocery_list(
                         valid_from=offer.valid_from,
                         valid_until=offer.valid_until,
                         image=offer.image,
-                        package_count=packages,
-                        package_size=package_size,
-                        package_unit=package_unit,
                     )
-                )
+                    assignments.append(schemas.AssignedProduct(product=item, required_packages=1))
 
             if best_total_price is None or total < best_total_price:
                 best_total_price = total
@@ -237,10 +249,6 @@ def optimize_grocery_list(
         req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
         offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
 
-        packages = 1
-        package_size = float(offer.quantity)
-        package_unit = offer.unit
-
         if req_base_unit == offer_base_unit and offer_qty_base > 0:
             packages = math.ceil(req_qty_base / offer_qty_base)
             cost = price_f * packages
@@ -255,8 +263,23 @@ def optimize_grocery_list(
                 cost = price_f * qty_req
 
         total += cost
-        assignments.append(
-            schemas.ItemAssignment(
+        normalized_req_unit = _normalize_unit(req_unit or "")
+        normalized_offer_unit = _normalize_unit(offer.unit or "")
+        if req_base_unit == offer_base_unit or normalized_req_unit == normalized_offer_unit:
+            item = schemas.ItemAssignment(
+                product_name=name,
+                store_name=offer.store_name,
+                price=price_f,
+                offer_id=offer.id,
+                quantity=float(offer.quantity),
+                unit=offer.unit,
+                valid_from=offer.valid_from,
+                valid_until=offer.valid_until,
+                image=offer.image,
+            )
+            assignments.append(schemas.AssignedProduct(product=item, required_packages=packages))
+        else:
+            item = schemas.ItemAssignment(
                 product_name=name,
                 store_name=offer.store_name,
                 price=price_f,
@@ -266,11 +289,8 @@ def optimize_grocery_list(
                 valid_from=offer.valid_from,
                 valid_until=offer.valid_until,
                 image=offer.image,
-                package_count=packages,
-                package_size=package_size,
-                package_unit=package_unit,
             )
-        )
+            assignments.append(schemas.AssignedProduct(product=item, required_packages=1))
         if offer.store_name not in used_stores:
             used_stores.append(offer.store_name)
 
@@ -330,9 +350,6 @@ def search_products(
             valid_from=row["valid_from"],
             valid_until=row["valid_until"],
             image=row.get("image"),
-            package_count=1,
-            package_size=float(row["quantity"]),
-            package_unit=row["unit"],
         )
         for row in rows
     ]
@@ -385,9 +402,6 @@ def get_all_products(db: Session = Depends(get_db)):
             valid_from=row["valid_from"],
             valid_until=row["valid_until"],
             image=row.get("image"),
-            package_count=1,
-            package_size=float(row["quantity"]),
-            package_unit=row["unit"],
         )
         for row in rows
     ]

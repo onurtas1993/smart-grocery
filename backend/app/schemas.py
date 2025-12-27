@@ -35,13 +35,16 @@ class ItemAssignment(BaseModel):
     valid_from: date
     valid_until: date
     image: Optional[str] = Field(None, example="https://example.com/images/eggs.png")
-    package_count: int = Field(1, description="Number of offer packages required to fulfill the requested quantity")
-    package_size: Optional[float] = Field(None, description="Size/quantity of a single offer package (as stored in DB)")
-    package_unit: Optional[str] = Field(None, description="Unit of the offer package (e.g., 'g', 'piece')")
+    # package_count removed: use AssignedProduct.required_packages instead
+
+
+class AssignedProduct(BaseModel):
+    product: ItemAssignment
+    required_packages: int = Field(1, description="Number of packages required to fulfill the request")
 
 
 class OptimizationResponse(BaseModel):
     mode: OptimizationMode
     total_price: float
     stores: List[str]
-    items: List[ItemAssignment]
+    items: List[AssignedProduct]
