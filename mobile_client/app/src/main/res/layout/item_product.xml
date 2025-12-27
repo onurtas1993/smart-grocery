@@ -14,14 +14,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="8dp">
 
         <ImageView
             android:id="@+id/productImage"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@tools:sample/backgrounds/scenic" />
@@ -30,76 +30,54 @@
             android:id="@+id/productTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            app:layout_constraintEnd_toStartOf="@+id/productPrice"
-            app:layout_constraintStart_toEndOf="@id/productImage"
-            app:layout_constraintTop_toTopOf="parent"
+            android:minLines="2"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/productImage"
             tools:text="Premium Grade Fresh Orange" />
 
-        <TextView
-            android:id="@+id/productPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            android:textColor="?attr/colorPrimary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="€1.99" />
-
-        <TextView
-            android:id="@+id/storeName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:drawablePadding="4dp"
-            android:gravity="center"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintStart_toEndOf="@id/productImage"
-            app:layout_constraintTop_toBottomOf="@id/productTitle"
-            tools:text="Fresh Grocer" />
 
         <TextView
             android:id="@+id/quantityText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:drawablePadding="4dp"
-            android:gravity="center"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintStart_toEndOf="@id/productImage"
-            app:layout_constraintTop_toBottomOf="@id/storeName"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintBaseline_toBottomOf="@id/addRemoveLayout"
+            app:layout_constraintStart_toStartOf="parent"
             tools:text="400 gram" />
 
-        <!-- START: Updated Action Buttons with built-in icons -->
         <LinearLayout
+            android:id="@+id/addRemoveLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/productTitle">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/removeButton"
                 style="@style/IconButton36"
                 app:icon="@drawable/minus"
                 app:iconGravity="textStart"
-                app:iconSize="32dp"
-                app:iconTint="@color/black"/>
+                app:iconTint="@color/black"
+                app:iconSize="32dp" />
 
             <TextView
                 android:id="@+id/basketQuantity"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:layout_margin="8dp"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:text="0"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
                 tools:text="0" />
 
             <com.google.android.material.button.MaterialButton
@@ -107,11 +85,10 @@
                 style="@style/IconButton36"
                 app:icon="@drawable/plus"
                 app:iconGravity="textStart"
-                app:iconSize="32dp"
-                app:iconTint="@color/black"/>
+                app:iconTint="@color/black"
+                app:iconSize="32dp" />
 
         </LinearLayout>
-        <!-- END: Updated Action Buttons -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -23,8 +23,6 @@ class ProductAdapter(
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imageView: ImageView = itemView.findViewById(R.id.productImage)
         private val titleTextView: TextView = itemView.findViewById(R.id.productTitle)
-        private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
-        private val storeTextView: TextView = itemView.findViewById(R.id.storeName)
         private val quantityTextView: TextView = itemView.findViewById(R.id.quantityText)
         private val addButton: Button = itemView.findViewById(R.id.addButton)
         private val removeButton: Button = itemView.findViewById(R.id.removeButton)
@@ -41,8 +39,6 @@ class ProductAdapter(
             }
 
             titleTextView.text = product.title
-            priceTextView.text = String.format(Locale.GERMANY, "€%.2f", product.price)
-            storeTextView.text = product.store
 
             val quantityString = if (product.quantity == product.quantity.toInt().toDouble()) {
                 String.format("%d %s", product.quantity.toInt(), product.unit)
