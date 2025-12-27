@@ -13,6 +13,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.onurtas.marktfox.R
 import com.onurtas.marktfox.adapter.SummaryAdapter
 import com.onurtas.marktfox.model.ApiBasketItem
@@ -31,6 +32,7 @@ class SummaryFragment : Fragment() {
     private lateinit var totalCostValue: TextView
     private lateinit var totalCostLayout: View
     private lateinit var progressBar: ProgressBar
+    private lateinit var modeCheckbox: MaterialCheckBox
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,12 +44,14 @@ class SummaryFragment : Fragment() {
         totalCostValue = view.findViewById(R.id.totalCostValue)
         totalCostLayout = view.findViewById(R.id.totalCostLayout)
         progressBar = view.findViewById(R.id.progressBar)
+        modeCheckbox = view.findViewById(R.id.modeCheckbox)
         setupRecyclerView()
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupCheckboxListener()
         observeViewModel()
     }
 
@@ -56,6 +60,22 @@ class SummaryFragment : Fragment() {
         summaryRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = summaryAdapter
+        }
+    }
+
+    private fun setupCheckboxListener() {
+        modeCheckbox.setOnCheckedChangeListener { _, _ ->
+            val basket = mainActivityViewModel.basket.value
+            if (basket != null && basket.isNotEmpty()) {
+                val apiBasketItems = basket.values.map { (product, quantity) ->
+                    ApiBasketItem(
+                        name = product.title,
+                        quantity = product.quantity * quantity,
+                        unit = product.unit ?: ""
+                    )
+                }
+                viewModel.fetchOptimizedBasket(apiBasketItems, modeCheckbox.isChecked)
+            }
         }
     }
 
@@ -69,7 +89,7 @@ class SummaryFragment : Fragment() {
                         unit = product.unit ?: ""
                     )
                 }
-                viewModel.fetchOptimizedBasket(apiBasketItems)
+                viewModel.fetchOptimizedBasket(apiBasketItems, modeCheckbox.isChecked)
             } else {
                 summaryAdapter.updateItems(emptyMap())
                 totalCostValue.text = ""
