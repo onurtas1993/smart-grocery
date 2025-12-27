@@ -103,12 +103,36 @@ def optimize_grocery_list(
         store = offer.store_name
         product = offer.product_name
 
-        # compute offer unit price in a base unit (e.g., grams or pieces) when possible
+        # Determine cost to satisfy the requested quantity for this product (if requested)
+        req_qty = float(requested_qty.get(product, 1.0)) if product in requested_qty else None
+        req_unit = requested_unit.get(product) if product in requested_unit else None
+
         try:
             offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
-            offer_unit_price = float(offer.price) / offer_qty_base if offer_qty_base > 0 else float("inf")
         except Exception:
-            offer_qty_base, offer_base_unit, offer_unit_price = float(offer.quantity), offer.unit, float(offer.price) / float(offer.quantity) if float(offer.quantity) else float("inf")
+            offer_qty_base, offer_base_unit = float(offer.quantity), offer.unit
+
+        def _cost_for_offer(offer_qty_base, offer_base_unit, offer_price, req_qty, req_unit):
+            try:
+                if req_qty is None:
+                    return float(offer_price)
+                req_qty_base, req_base_unit = _to_base_qty(req_qty, req_unit)
+                if req_base_unit == offer_base_unit and offer_qty_base > 0:
+                    packages = math.ceil(req_qty_base / offer_qty_base)
+                    return float(offer_price) * packages
+                else:
+                    # fallback to naive multiplication or package count when units string matches
+                    if (req_unit or "").strip().lower() == (offer.unit or "").strip().lower() and float(offer.quantity) > 0:
+                        packages = math.ceil(req_qty / float(offer.quantity))
+                        return float(offer_price) * packages
+                    return float(offer_price) * req_qty
+            except Exception:
+                return float(offer_price) * (req_qty if req_qty is not None else 1.0)
+
+        try:
+            offer_cost_for_request = _cost_for_offer(offer_qty_base, offer_base_unit, float(offer.price), req_qty, req_unit)
+        except Exception:
+            offer_cost_for_request = float(offer.price)
 
         # per-store cheapest (compare by unit price when possible)
         store_entry = store_product_map.setdefault(store, {})
@@ -116,13 +140,16 @@ def optimize_grocery_list(
         if existing_store_offer is None:
             store_entry[product] = offer
         else:
+            ex_req_qty = float(requested_qty.get(product, 1.0)) if product in requested_qty else None
+            ex_req_unit = requested_unit.get(product) if product in requested_unit else None
             try:
                 ex_qty_base, ex_base_unit = _to_base_qty(float(existing_store_offer.quantity), existing_store_offer.unit)
-                ex_unit_price = float(existing_store_offer.price) / ex_qty_base if ex_qty_base > 0 else float("inf")
             except Exception:
-                ex_unit_price = float(existing_store_offer.price) / float(existing_store_offer.quantity) if float(existing_store_offer.quantity) else float("inf")
+                ex_qty_base, ex_base_unit = float(existing_store_offer.quantity), existing_store_offer.unit
 
-            if offer_unit_price < ex_unit_price:
+            ex_cost_for_request = _cost_for_offer(ex_qty_base, ex_base_unit, float(existing_store_offer.price), ex_req_qty, ex_req_unit)
+
+            if offer_cost_for_request < ex_cost_for_request:
                 store_entry[product] = offer
 
         # global cheapest per product (compare by unit price)
@@ -132,11 +159,12 @@ def optimize_grocery_list(
         else:
             try:
                 ex_qty_base, ex_base_unit = _to_base_qty(float(existing_global_offer.quantity), existing_global_offer.unit)
-                ex_unit_price = float(existing_global_offer.price) / ex_qty_base if ex_qty_base > 0 else float("inf")
             except Exception:
-                ex_unit_price = float(existing_global_offer.price) / float(existing_global_offer.quantity) if float(existing_global_offer.quantity) else float("inf")
+                ex_qty_base, ex_base_unit = float(existing_global_offer.quantity), existing_global_offer.unit
 
-            if offer_unit_price < ex_unit_price:
+            ex_cost_for_request = _cost_for_offer(ex_qty_base, ex_base_unit, float(existing_global_offer.price), req_qty, req_unit)
+
+            if offer_cost_for_request < ex_cost_for_request:
                 product_global_cheapest[product] = offer
 
     # ---------- SINGLE_STORE mode ---------- #
@@ -230,69 +258,98 @@ def optimize_grocery_list(
         )
 
     # ---------- MULTI_STORE mode ---------- #
+    # Recompute per-product cheapest offers explicitly from the full offers list.
+    # This avoids depending on an earlier map that may have been populated
+    # in a way that doesn't guarantee the true per-product minimum by total
+    # cost-to-satisfy-request.
     assignments: List[schemas.ItemAssignment] = []
     used_stores: List[str] = []
     total = 0.0
 
     for name in requested_names:
-        offer = product_global_cheapest.get(name)
-        if offer is None:
+        # find all offers for this product and pick the one with minimal
+        # cost to satisfy the requested quantity (package-aware)
+        best_offer = None
+        best_cost = None
+        best_packages = 1
+
+        for offer in offers:
+            if offer.product_name != name:
+                continue
+
+            price_f = float(offer.price)
+            qty_req = requested_qty.get(name, 1.0)
+            req_unit = requested_unit.get(name)
+
+            try:
+                req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
+            except Exception:
+                req_qty_base, req_base_unit = qty_req, req_unit
+
+            try:
+                offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
+            except Exception:
+                offer_qty_base, offer_base_unit = float(offer.quantity), offer.unit
+
+            try:
+                if req_base_unit == offer_base_unit and offer_qty_base > 0:
+                    packages = math.ceil(req_qty_base / offer_qty_base)
+                    cost = price_f * packages
+                else:
+                    if (req_unit or "").strip().lower() == (offer.unit or "").strip().lower() and float(offer.quantity) > 0:
+                        packages = math.ceil(qty_req / float(offer.quantity))
+                        cost = price_f * packages
+                    else:
+                        cost = price_f * qty_req
+            except Exception:
+                packages = 1
+                cost = price_f * (qty_req if qty_req is not None else 1.0)
+
+            if best_cost is None or cost < best_cost:
+                best_cost = cost
+                best_offer = offer
+                best_packages = packages
+
+        if best_offer is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"No offers found for product '{name}'.",
             )
 
-        price_f = float(offer.price)
-        qty_req = requested_qty.get(name, 1.0)
-        req_unit = requested_unit.get(name)
+        # record selection
+        total += best_cost
+        normalized_req_unit = _normalize_unit(requested_unit.get(name) or "")
+        normalized_offer_unit = _normalize_unit(best_offer.unit or "")
 
-        req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
-        offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
-
-        if req_base_unit == offer_base_unit and offer_qty_base > 0:
-            packages = math.ceil(req_qty_base / offer_qty_base)
-            cost = price_f * packages
-        else:
-            try:
-                if (req_unit or "").strip().lower() == (offer.unit or "").strip().lower() and float(offer.quantity) > 0:
-                    packages = math.ceil(qty_req / float(offer.quantity))
-                    cost = price_f * packages
-                else:
-                    cost = price_f * qty_req
-            except Exception:
-                cost = price_f * qty_req
-
-        total += cost
-        normalized_req_unit = _normalize_unit(req_unit or "")
-        normalized_offer_unit = _normalize_unit(offer.unit or "")
-        if req_base_unit == offer_base_unit or normalized_req_unit == normalized_offer_unit:
+        if (req_base_unit == offer_base_unit) or (normalized_req_unit == normalized_offer_unit):
             item = schemas.ItemAssignment(
                 product_name=name,
-                store_name=offer.store_name,
-                price=price_f,
-                offer_id=offer.id,
-                quantity=float(offer.quantity),
-                unit=offer.unit,
-                valid_from=offer.valid_from,
-                valid_until=offer.valid_until,
-                image=offer.image,
+                store_name=best_offer.store_name,
+                price=float(best_offer.price),
+                offer_id=best_offer.id,
+                quantity=float(best_offer.quantity),
+                unit=best_offer.unit,
+                valid_from=best_offer.valid_from,
+                valid_until=best_offer.valid_until,
+                image=best_offer.image,
             )
-            assignments.append(schemas.AssignedProduct(product=item, required_packages=packages))
+            assignments.append(schemas.AssignedProduct(product=item, required_packages=best_packages))
         else:
             item = schemas.ItemAssignment(
                 product_name=name,
-                store_name=offer.store_name,
-                price=price_f,
-                offer_id=offer.id,
-                quantity=qty_req,
-                unit=req_unit or offer.unit,
-                valid_from=offer.valid_from,
-                valid_until=offer.valid_until,
-                image=offer.image,
+                store_name=best_offer.store_name,
+                price=float(best_offer.price),
+                offer_id=best_offer.id,
+                quantity=requested_qty.get(name),
+                unit=requested_unit.get(name),
+                valid_from=best_offer.valid_from,
+                valid_until=best_offer.valid_until,
+                image=best_offer.image,
             )
             assignments.append(schemas.AssignedProduct(product=item, required_packages=1))
-        if offer.store_name not in used_stores:
-            used_stores.append(offer.store_name)
+
+        if best_offer.store_name not in used_stores:
+            used_stores.append(best_offer.store_name)
 
     return schemas.OptimizationResponse(
         mode=mode,

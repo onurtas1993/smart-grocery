@@ -1,0 +1,46 @@
+[
+  {"store_name":"ALDI","product_name":"Eggs","quantity":10,"unit":"pcs","price":1.49,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Eggs.png"},
+  {"store_name":"REWE","product_name":"Eggs","quantity":12,"unit":"pcs","price":2.19,"valid_from":"2025-01-05","valid_until":"2026-01-05","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Eggs.png"},
+  {"store_name":"LIDL","product_name":"Eggs","quantity":10,"unit":"pcs","price":1.39,"valid_from":"2025-01-03","valid_until":"2026-02-03","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Eggs.png"},
+  {"store_name":"EDEKA","product_name":"Eggs","quantity":6,"unit":"pcs","price":1.29,"valid_from":"2025-01-02","valid_until":"2026-02-02","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Eggs.png"},
+
+  {"store_name":"ALDI","product_name":"Milk","quantity":1,"unit":"Liter","price":0.95,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Milk.png"},
+  {"store_name":"REWE","product_name":"Milk","quantity":1,"unit":"Liter","price":1.09,"valid_from":"2025-01-04","valid_until":"2026-01-04","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Milk.png"},
+  {"store_name":"LIDL","product_name":"Milk","quantity":1,"unit":"Liter","price":0.89,"valid_from":"2025-01-03","valid_until":"2026-02-03","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Milk.png"},
+  {"store_name":"EDEKA","product_name":"Milk","quantity":1,"unit":"Liter","price":1.19,"valid_from":"2025-01-01","valid_until":"2026-01-20","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Milk.png"},
+
+  {"store_name":"ALDI","product_name":"Cheese","quantity":400,"unit":"g","price":2.49,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Cheese.png"},
+  {"store_name":"REWE","product_name":"Cheese","quantity":300,"unit":"g","price":2.79,"valid_from":"2025-01-06","valid_until":"2026-01-06","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Cheese.png"},
+  {"store_name":"LIDL","product_name":"Cheese","quantity":500,"unit":"g","price":2.99,"valid_from":"2025-01-02","valid_until":"2026-01-12","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Cheese.png"},
+  {"store_name":"EDEKA","product_name":"Cheese","quantity":250,"unit":"g","price":2.59,"valid_from":"2025-01-03","valid_until":"2026-02-03","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Cheese.png"},
+
+  {"store_name":"ALDI","product_name":"Yogurt","quantity":500,"unit":"g","price":1.39,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Yogurt.png"},
+  {"store_name":"REWE","product_name":"Yogurt","quantity":150,"unit":"g","price":0.49,"valid_from":"2025-01-05","valid_until":"2026-01-25","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Yogurt.png"},
+  {"store_name":"LIDL","product_name":"Yogurt","quantity":500,"unit":"g","price":1.29,"valid_from":"2025-01-07","valid_until":"2026-02-07","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Yogurt.png"},
+  {"store_name":"EDEKA","product_name":"Yogurt","quantity":150,"unit":"g","price":0.55,"valid_from":"2025-01-03","valid_until":"2026-01-15","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Yogurt.png"},
+
+  {"store_name":"ALDI","product_name":"Bread","quantity":1,"unit":"pcs","price":1.19,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Bread.png"},
+  {"store_name":"REWE","product_name":"Bread","quantity":1,"unit":"pcs","price":1.79,"valid_from":"2025-01-03","valid_until":"2026-01-10","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Bread.png"},
+  {"store_name":"LIDL","product_name":"Bread","quantity":1,"unit":"pcs","price":1.29,"valid_from":"2025-01-04","valid_until":"2026-02-04","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Bread.png"},
+  {"store_name":"EDEKA","product_name":"Bread","quantity":1,"unit":"pcs","price":1.69,"valid_from":"2025-01-02","valid_until":"2026-01-20","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Bread.png"},
+
+  {"store_name":"ALDI","product_name":"Apples","quantity":1000,"unit":"g","price":1.99,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Apple.png"},
+  {"store_name":"REWE","product_name":"Apples","quantity":1000,"unit":"g","price":2.49,"valid_from":"2025-01-06","valid_until":"2026-01-06","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Apple.png"},
+  {"store_name":"LIDL","product_name":"Apples","quantity":1000,"unit":"g","price":1.89,"valid_from":"2025-01-05","valid_until":"2026-03-05","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Apple.png"},
+  {"store_name":"EDEKA","product_name":"Apples","quantity":1000,"unit":"g","price":2.29,"valid_from":"2025-01-03","valid_until":"2026-01-25","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Apple.png"},
+
+  {"store_name":"ALDI","product_name":"Potatoes","quantity":2500,"unit":"g","price":2.49,"valid_from":"2025-01-01","valid_until":"2026-02-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Potato.png"},
+  {"store_name":"REWE","product_name":"Potatoes","quantity":3000,"unit":"g","price":3.29,"valid_from":"2025-01-04","valid_until":"2026-02-04","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Potato.png"},
+  {"store_name":"LIDL","product_name":"Potatoes","quantity":2000,"unit":"g","price":1.99,"valid_from":"2025-01-05","valid_until":"2026-01-15","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Potato.png"},
+  {"store_name":"EDEKA","product_name":"Potatoes","quantity":2500,"unit":"g","price":2.79,"valid_from":"2025-01-03","valid_until":"2026-01-30","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Potato.png"},
+
+  {"store_name":"ALDI","product_name":"Bananas","quantity":1000,"unit":"g","price":1.29,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Banana.png"},
+  {"store_name":"REWE","product_name":"Bananas","quantity":1000,"unit":"g","price":1.59,"valid_from":"2025-01-05","valid_until":"2026-02-05","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Banana.png"},
+  {"store_name":"LIDL","product_name":"Bananas","quantity":1000,"unit":"g","price":1.19,"valid_from":"2025-01-03","valid_until":"2026-01-20","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Banana.png"},
+  {"store_name":"EDEKA","product_name":"Bananas","quantity":1000,"unit":"g","price":1.39,"valid_from":"2025-01-02","valid_until":"2026-01-25","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Banana.png"},
+
+  {"store_name":"ALDI","product_name":"Pasta","quantity":500,"unit":"g","price":0.89,"valid_from":"2025-01-01","valid_until":"2026-01-01","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Pasta.png"},
+  {"store_name":"REWE","product_name":"Pasta","quantity":500,"unit":"g","price":1.09,"valid_from":"2025-01-05","valid_until":"2026-01-31","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Pasta.png"},
+  {"store_name":"LIDL","product_name":"Pasta","quantity":500,"unit":"g","price":0.79,"valid_from":"2025-01-04","valid_until":"2026-02-04","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Pasta.png"},
+  {"store_name":"EDEKA","product_name":"Pasta","quantity":500,"unit":"g","price":1.19,"valid_from":"2025-01-02","valid_until":"2026-01-18","image":"https://marktfox-thumbnails.s3.eu-central-1.amazonaws.com/thumbnails/Pasta.png"}
+]

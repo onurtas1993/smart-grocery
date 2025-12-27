@@ -3,29 +3,34 @@
 -- \c smart_grocery_optimizer;
 
 
--- ============================================
---  TABLE: store_offers
--- ============================================
--- Stores all promotional offers extracted from prospekts.
--- Used read-only by the optimizer endpoint.
---
--- Fields:
---   store_name    : Name of the store ("ALDI", "REWE", "LIDL", ...)
---   product_name  : Product name ("eggs", "milk", "cheese", ...)
---   quantity      : The pack size (12, 400, 1, ...)
---   unit          : The unit ("pieces", "grams", "liter")
---   price         : Price in EUR
---   valid_from    : Optional start date of validity
---   valid_until   : Required expiry date
--- ============================================
+-- Table: public.store_offers
 
-CREATE TABLE IF NOT EXISTS store_offers (
-    id SERIAL PRIMARY KEY,
-    store_name   TEXT NOT NULL,
-    product_name TEXT NOT NULL,
-    quantity     NUMERIC NOT NULL,
-    unit         TEXT NOT NULL,
-    price        NUMERIC NOT NULL,
-    valid_from   DATE,
-    valid_until  DATE NOT NULL
-);
+-- DROP TABLE IF EXISTS public.store_offers;
+
+CREATE TABLE IF NOT EXISTS public.store_offers
+(
+    id integer NOT NULL DEFAULT nextval('store_offers_id_seq'::regclass),
+    store_name text COLLATE pg_catalog."default" NOT NULL,
+    product_name text COLLATE pg_catalog."default" NOT NULL,
+    quantity numeric NOT NULL,
+    unit text COLLATE pg_catalog."default" NOT NULL,
+    price numeric NOT NULL,
+    valid_from date NOT NULL,
+    valid_until date NOT NULL,
+    image text COLLATE pg_catalog."default",
+    CONSTRAINT store_offers_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.store_offers
+    OWNER to postgres;
+-- Index: ix_store_offers_id
+
+-- DROP INDEX IF EXISTS public.ix_store_offers_id;
+
+CREATE INDEX IF NOT EXISTS ix_store_offers_id
+    ON public.store_offers USING btree
+    (id ASC NULLS LAST)
+    WITH (fillfactor=100, deduplicate_items=True)
+    TABLESPACE pg_default;

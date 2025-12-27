@@ -1,8 +1,8 @@
 import os
 from datetime import date, timedelta
 
-# Use in-memory sqlite for tests
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+# Use a temporary file-based sqlite for tests to avoid separate in-memory connections
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 
 from fastapi.testclient import TestClient
 from app.db import SessionLocal, engine, Base
