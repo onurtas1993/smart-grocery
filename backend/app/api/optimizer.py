@@ -384,7 +384,7 @@ def get_all_products(db: Session = Depends(get_db)):
         SELECT DISTINCT ON (product_name)
             product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
         FROM store_offers
-        ORDER BY product_name, id
+        ORDER BY product_name, quantity ASC, id
     """)
 
     rows = db.execute(sql_query).mappings().all()
