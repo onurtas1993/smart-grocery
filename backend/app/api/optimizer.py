@@ -171,17 +171,29 @@ def optimize_grocery_list(
 def search_products(
     name: str = Query(..., description="Search term to find products containing the given name."),
     store: str = Query(None, description="Optional store name to filter results (e.g., ALDI, LIDL)."),
+    distinct: bool = Query(True, description="Return only distinct rows (uses SQL DISTINCT when true)."),
     db: Session = Depends(get_db),
 ):
     """
     Search for products containing the given name in their product name.
     Optionally filter results by store name.
     """
-    sql = """
-        SELECT DISTINCT product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
-        FROM store_offers
-        WHERE LOWER(product_name) LIKE :pattern
-    """
+    if distinct:
+        # Use PostgreSQL DISTINCT ON to return one row per product_name.
+        # Order by product_name then id to pick a deterministic row per product.
+        sql = """
+            SELECT DISTINCT ON (product_name)
+                product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
+            FROM store_offers
+            WHERE LOWER(product_name) LIKE :pattern
+            ORDER BY product_name, id
+        """
+    else:
+        sql = """
+            SELECT product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
+            FROM store_offers
+            WHERE LOWER(product_name) LIKE :pattern
+        """
     params = {"pattern": f"%{name.lower()}%"}
 
     if store:

@@ -23,7 +23,6 @@ class ProductAdapter(
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imageView: ImageView = itemView.findViewById(R.id.productImage)
         private val titleTextView: TextView = itemView.findViewById(R.id.productTitle)
-        private val quantityTextView: TextView = itemView.findViewById(R.id.quantityText)
         private val addButton: Button = itemView.findViewById(R.id.addButton)
         private val removeButton: Button = itemView.findViewById(R.id.removeButton)
         val basketQuantity: TextView = itemView.findViewById(R.id.basketQuantity)
@@ -40,12 +39,6 @@ class ProductAdapter(
 
             titleTextView.text = product.title
 
-            val quantityString = if (product.quantity == product.quantity.toInt().toDouble()) {
-                String.format("%d %s", product.quantity.toInt(), product.unit)
-            } else {
-                String.format(Locale.GERMANY, "%.2f %s", product.quantity, product.unit)
-            }
-            quantityTextView.text = quantityString
             basketQuantity.text = currentQuantity.toString()
 
             addButton.setOnClickListener { listener.onProductAdded(product) }
