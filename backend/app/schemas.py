@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from datetime import date
 
 from pydantic import BaseModel, Field
@@ -34,7 +34,10 @@ class ItemAssignment(BaseModel):
     unit: str
     valid_from: date
     valid_until: date
-    image: str = Field(None, example="https://example.com/images/eggs.png")
+    image: Optional[str] = Field(None, example="https://example.com/images/eggs.png")
+    package_count: int = Field(1, description="Number of offer packages required to fulfill the requested quantity")
+    package_size: Optional[float] = Field(None, description="Size/quantity of a single offer package (as stored in DB)")
+    package_unit: Optional[str] = Field(None, description="Unit of the offer package (e.g., 'g', 'piece')")
 
 
 class OptimizationResponse(BaseModel):

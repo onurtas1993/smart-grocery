@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Dict, List
+import math
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, text
@@ -38,8 +39,41 @@ def optimize_grocery_list(
 
     today = date.today()
     requested_names = [item.name for item in payload.items]
-    # Map product name -> requested quantity
+    # Map product name -> requested quantity and unit
     requested_qty: Dict[str, float] = {item.name: float(item.quantity) for item in payload.items}
+    requested_unit: Dict[str, str] = {item.name: item.unit for item in payload.items}
+
+    def _normalize_unit(unit: str) -> str:
+        if not unit:
+            return unit
+        u = unit.strip().lower()
+        if u in ("g", "gram", "grams", "gramm", "gramm.", "gramm(s)", "gramm(s)", "gramm"):
+            return "g"
+        if u in ("kg", "kilogram", "kilograms", "kg."):
+            return "kg"
+        if u in ("l", "liter", "litre", "liters", "litres", "l."):
+            return "l"
+        if u in ("ml", "milliliter", "millilitre", "milliliters", "millilitres", "ml."):
+            return "ml"
+        if u in ("piece", "pieces", "stk", "pcs", "stück"):
+            return "piece"
+        return u
+
+    def _to_base_qty(qty: float, unit: str):
+        u = _normalize_unit(unit)
+        if u == "kg":
+            return qty * 1000.0, "g"
+        if u == "g":
+            return qty, "g"
+        if u == "l":
+            return qty * 1000.0, "ml"
+        if u == "ml":
+            return qty, "ml"
+        # pieces remain as-is
+        if u == "piece":
+            return qty, "piece"
+        # unknown unit: return original and mark base as raw
+        return qty, u
 
     # Fetch all offers for requested products that are still valid
     offers = (
@@ -69,16 +103,41 @@ def optimize_grocery_list(
         store = offer.store_name
         product = offer.product_name
 
-        # per-store cheapest
+        # compute offer unit price in a base unit (e.g., grams or pieces) when possible
+        try:
+            offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
+            offer_unit_price = float(offer.price) / offer_qty_base if offer_qty_base > 0 else float("inf")
+        except Exception:
+            offer_qty_base, offer_base_unit, offer_unit_price = float(offer.quantity), offer.unit, float(offer.price) / float(offer.quantity) if float(offer.quantity) else float("inf")
+
+        # per-store cheapest (compare by unit price when possible)
         store_entry = store_product_map.setdefault(store, {})
         existing_store_offer = store_entry.get(product)
-        if existing_store_offer is None or offer.price < existing_store_offer.price:
+        if existing_store_offer is None:
             store_entry[product] = offer
+        else:
+            try:
+                ex_qty_base, ex_base_unit = _to_base_qty(float(existing_store_offer.quantity), existing_store_offer.unit)
+                ex_unit_price = float(existing_store_offer.price) / ex_qty_base if ex_qty_base > 0 else float("inf")
+            except Exception:
+                ex_unit_price = float(existing_store_offer.price) / float(existing_store_offer.quantity) if float(existing_store_offer.quantity) else float("inf")
 
-        # global cheapest per product
+            if offer_unit_price < ex_unit_price:
+                store_entry[product] = offer
+
+        # global cheapest per product (compare by unit price)
         existing_global_offer = product_global_cheapest.get(product)
-        if existing_global_offer is None or offer.price < existing_global_offer.price:
+        if existing_global_offer is None:
             product_global_cheapest[product] = offer
+        else:
+            try:
+                ex_qty_base, ex_base_unit = _to_base_qty(float(existing_global_offer.quantity), existing_global_offer.unit)
+                ex_unit_price = float(existing_global_offer.price) / ex_qty_base if ex_qty_base > 0 else float("inf")
+            except Exception:
+                ex_unit_price = float(existing_global_offer.price) / float(existing_global_offer.quantity) if float(existing_global_offer.quantity) else float("inf")
+
+            if offer_unit_price < ex_unit_price:
+                product_global_cheapest[product] = offer
 
     # ---------- SINGLE_STORE mode ---------- #
     if mode == schemas.OptimizationMode.SINGLE_STORE:
@@ -98,7 +157,31 @@ def optimize_grocery_list(
                 offer = products_map[name]
                 price_f = float(offer.price)
                 qty_req = requested_qty.get(name, 1.0)
-                total += price_f * qty_req
+                req_unit = requested_unit.get(name)
+
+                # convert requested and offer quantities to a common base when possible
+                req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
+                offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
+
+                packages = 1
+                package_size = float(offer.quantity)
+                package_unit = offer.unit
+
+                if req_base_unit == offer_base_unit and offer_qty_base > 0:
+                    packages = math.ceil(req_qty_base / offer_qty_base)
+                    cost = price_f * packages
+                else:
+                    # fallback: if units strings match, use simple division, else assume price is per unit
+                    try:
+                        if (req_unit or "").strip().lower() == (offer.unit or "").strip().lower() and float(offer.quantity) > 0:
+                            packages = math.ceil(qty_req / float(offer.quantity))
+                            cost = price_f * packages
+                        else:
+                            cost = price_f * qty_req
+                    except Exception:
+                        cost = price_f * qty_req
+
+                total += cost
                 assignments.append(
                     schemas.ItemAssignment(
                         product_name=name,
@@ -106,10 +189,13 @@ def optimize_grocery_list(
                         price=price_f,
                         offer_id=offer.id,
                         quantity=qty_req,
-                        unit=offer.unit,
+                        unit=req_unit or offer.unit,
                         valid_from=offer.valid_from,
                         valid_until=offer.valid_until,
                         image=offer.image,
+                        package_count=packages,
+                        package_size=package_size,
+                        package_unit=package_unit,
                     )
                 )
 
@@ -146,7 +232,29 @@ def optimize_grocery_list(
 
         price_f = float(offer.price)
         qty_req = requested_qty.get(name, 1.0)
-        total += price_f * qty_req
+        req_unit = requested_unit.get(name)
+
+        req_qty_base, req_base_unit = _to_base_qty(qty_req, req_unit)
+        offer_qty_base, offer_base_unit = _to_base_qty(float(offer.quantity), offer.unit)
+
+        packages = 1
+        package_size = float(offer.quantity)
+        package_unit = offer.unit
+
+        if req_base_unit == offer_base_unit and offer_qty_base > 0:
+            packages = math.ceil(req_qty_base / offer_qty_base)
+            cost = price_f * packages
+        else:
+            try:
+                if (req_unit or "").strip().lower() == (offer.unit or "").strip().lower() and float(offer.quantity) > 0:
+                    packages = math.ceil(qty_req / float(offer.quantity))
+                    cost = price_f * packages
+                else:
+                    cost = price_f * qty_req
+            except Exception:
+                cost = price_f * qty_req
+
+        total += cost
         assignments.append(
             schemas.ItemAssignment(
                 product_name=name,
@@ -154,10 +262,13 @@ def optimize_grocery_list(
                 price=price_f,
                 offer_id=offer.id,
                 quantity=qty_req,
-                unit=offer.unit,
+                unit=req_unit or offer.unit,
                 valid_from=offer.valid_from,
                 valid_until=offer.valid_until,
                 image=offer.image,
+                package_count=packages,
+                package_size=package_size,
+                package_unit=package_unit,
             )
         )
         if offer.store_name not in used_stores:
@@ -219,6 +330,9 @@ def search_products(
             valid_from=row["valid_from"],
             valid_until=row["valid_until"],
             image=row.get("image"),
+            package_count=1,
+            package_size=float(row["quantity"]),
+            package_unit=row["unit"],
         )
         for row in rows
     ]
@@ -271,6 +385,9 @@ def get_all_products(db: Session = Depends(get_db)):
             valid_from=row["valid_from"],
             valid_until=row["valid_until"],
             image=row.get("image"),
+            package_count=1,
+            package_size=float(row["quantity"]),
+            package_unit=row["unit"],
         )
         for row in rows
     ]
