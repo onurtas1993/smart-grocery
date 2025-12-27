@@ -11,4 +11,8 @@ class ProductRepository {
     suspend fun getProducts(): Response<List<Product>> {
         return apiService.getProducts()
     }
+
+    suspend fun searchProducts(query: String): Response<List<Product>> {
+        return apiService.searchProducts(query)
+    }
 }

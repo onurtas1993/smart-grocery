@@ -6,24 +6,46 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurtas.marktfox.model.Product
 import com.onurtas.marktfox.repository.ProductRepository
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 class ProductsViewModel : ViewModel() {
 
     private val repository = ProductRepository()
 
-    // Holds the complete list of products fetched from the API
-    private var fullProductList = listOf<Product>()
-
-    // Exposes the filtered list to the UI
     private val _products = MutableLiveData<List<Product>>()
     val products: LiveData<List<Product>> = _products
 
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> = _errorMessage
 
+    private val searchQuery = MutableStateFlow("")
+
     init {
         fetchProducts()
+        observeSearchQuery()
+    }
+
+    private fun observeSearchQuery() {
+        searchQuery
+            .debounce(500)
+            .filter { it.length > 1 || it.isEmpty() }
+            .distinctUntilChanged()
+            .onEach { query ->
+                if (query.isEmpty()) {
+                    fetchProducts()
+                } else {
+                    performSearch(query)
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun fetchProducts() {
@@ -31,8 +53,7 @@ class ProductsViewModel : ViewModel() {
             try {
                 val response = repository.getProducts()
                 if (response.isSuccessful && response.body() != null) {
-                    fullProductList = response.body()!!
-                    _products.postValue(fullProductList)
+                    _products.postValue(response.body())
                 } else {
                     _errorMessage.postValue("Failed to fetch products: ${response.message()}")
                 }
@@ -42,20 +63,22 @@ class ProductsViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Filters the product list based on a search query.
-     * @param query The text to search for in product titles.
-     */
-    fun searchProducts(query: String) {
-        if (query.isBlank()) {
-            // If the query is empty, show the full list
-            _products.value = fullProductList
-        } else {
-            // Otherwise, filter the list
-            val filteredList = fullProductList.filter { product ->
-                product.title.contains(query, ignoreCase = true)
+    private fun performSearch(query: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.searchProducts(query)
+                if (response.isSuccessful && response.body() != null) {
+                    _products.postValue(response.body())
+                } else {
+                    _errorMessage.postValue("Failed to search products: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                _errorMessage.postValue("An error occurred: ${e.message}")
             }
-            _products.value = filteredList
         }
+    }
+
+    fun searchProducts(query: String) {
+        searchQuery.value = query
     }
 }
