@@ -55,7 +55,6 @@ class ProductsFragment : Fragment(), ProductBasketListener {
     private fun setupRecyclerView() {
         productAdapter = ProductAdapter(emptyList(), this)
         recyclerView.apply {
-            // Change LinearLayoutManager to GridLayoutManager
             layoutManager = GridLayoutManager(context, 2)
             adapter = productAdapter
         }
@@ -70,28 +69,30 @@ class ProductsFragment : Fragment(), ProductBasketListener {
     private fun observeViewModel() {
         viewModel.products.observe(viewLifecycleOwner) { products ->
             progressBar.isVisible = false
+            errorTextView.isVisible = false // This line fixes the bug
             recyclerView.isVisible = true
             productAdapter.updateProducts(products)
         }
 
         viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
-            progressBar.isVisible = false
-            errorTextView.isVisible = true
-            errorTextView.text = errorMessage
-            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            if (errorMessage.isNotBlank()) {
+                progressBar.isVisible = false
+                recyclerView.isVisible = false
+                errorTextView.isVisible = true
+                errorTextView.text = errorMessage
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            }
         }
 
         mainActivityViewModel.basket.observe(viewLifecycleOwner) { basket ->
             val productIdsInBasket = basket.keys
 
-            // Reset the quantity for any product that is no longer in the basket
             productAdapter.getAllProductIds().forEach { productId ->
                 if (productId !in productIdsInBasket) {
                     productAdapter.updateProductQuantity(productId, 0)
                 }
             }
 
-            // Update the quantity for all items that are in the basket
             basket.forEach { (productId, entry) ->
                 val newQuantity = entry.second
                 productAdapter.updateProductQuantity(productId, newQuantity)

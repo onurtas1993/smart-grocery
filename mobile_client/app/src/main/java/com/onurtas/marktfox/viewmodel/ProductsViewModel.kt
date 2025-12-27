@@ -51,6 +51,8 @@ class ProductsViewModel : ViewModel() {
     private fun fetchProducts() {
         viewModelScope.launch {
             try {
+                // Clear previous errors when fetching all products
+                _errorMessage.postValue("")
                 val response = repository.getProducts()
                 if (response.isSuccessful && response.body() != null) {
                     _products.postValue(response.body())
@@ -66,6 +68,8 @@ class ProductsViewModel : ViewModel() {
     private fun performSearch(query: String) {
         viewModelScope.launch {
             try {
+                // Clear previous errors before starting a new search
+                _errorMessage.postValue("")
                 val response = repository.searchProducts(query)
                 if (response.isSuccessful && response.body() != null) {
                     _products.postValue(response.body())
