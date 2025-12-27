@@ -316,13 +316,14 @@ def search_products(
     params = {"pattern": f"%{name.lower()}%"}
 
     if distinct:
-        # Return one row per (product_name, quantity). Order to pick a deterministic row.
+        # Return one row per product_name. Order by smallest quantity to
+        # return the smallest package for each product name.
         sql = f"""
-            SELECT DISTINCT ON (product_name, quantity)
+            SELECT DISTINCT ON (product_name)
                 product_name, store_name, price, id, quantity, unit, valid_from, valid_until, image
             FROM store_offers
             {base_where}
-            ORDER BY product_name, quantity, id
+            ORDER BY product_name, quantity ASC, id
         """
     else:
         sql = f"""
