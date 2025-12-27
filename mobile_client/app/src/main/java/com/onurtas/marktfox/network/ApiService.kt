@@ -18,7 +18,7 @@ interface ApiService {
 
     @POST("optimize")
     suspend fun optimizeBasket(
-        @Query("mode") mode: String,
+        @Query("mode") mode: String = "multi_store",
         @Body request: OptimizeRequest
     ): Response<OptimizeResponse>
 }

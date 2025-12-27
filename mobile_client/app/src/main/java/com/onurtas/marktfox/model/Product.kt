@@ -12,12 +12,6 @@ data class Product(
     @SerializedName("price")
     val price: Double,
 
-    @SerializedName("description")
-    val description: String,
-
-    @SerializedName("category")
-    val category: String,
-
     @SerializedName("image")
     val image: String,
 

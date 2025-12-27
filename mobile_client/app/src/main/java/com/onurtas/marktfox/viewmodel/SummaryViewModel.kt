@@ -27,7 +27,7 @@ class SummaryViewModel : ViewModel() {
     val errorMessage: LiveData<String> = _errorMessage
 
     fun fetchOptimizedBasket(items: List<ApiBasketItem>) {
-        val mode = "single_store"
+        val mode = "multi_store"
         val request = OptimizeRequest(items)
         _isLoading.value = true
 
