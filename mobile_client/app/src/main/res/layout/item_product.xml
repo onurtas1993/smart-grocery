@@ -80,34 +80,35 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/removeButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/minus" />
+                style="@style/IconButton36"
+                app:icon="@drawable/minus"
+                app:iconGravity="textStart"
+                app:iconSize="32dp"
+                app:iconTint="@color/black"/>
 
             <TextView
                 android:id="@+id/basketQuantity"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:layout_margin="8dp"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:text="0"
-                tools:text="1" />
+                tools:text="0" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/addButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/plus" />
+                style="@style/IconButton36"
+                app:icon="@drawable/plus"
+                app:iconGravity="textStart"
+                app:iconSize="32dp"
+                app:iconTint="@color/black"/>
 
         </LinearLayout>
         <!-- END: Updated Action Buttons -->
