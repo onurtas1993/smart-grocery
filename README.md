@@ -33,9 +33,7 @@ This app consists of 4 components:
 - **Check the cheapest total price**:  
   User makes a list as: eggs, cheese and milk. User then submits this list to the webservice and the result will be the list of the products with the cheapest offers and total cost for the desired items.
 
-
-  <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/162033294/530534419-d0cba77f-f769-4337-8512-83585ec5be3c.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20251228%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251228T092746Z&X-Amz-Expires=300&X-Amz-Signature=647db9759a25008608ce144083d68405f147dda243a4e7e0a947b4cebcf7aff2&X-Amz-SignedHeaders=host" />
-  
+<img width="4980" height="2359" alt="Screenshot_20251228-101040-portrait-imageonline co-merged" src="https://github.com/user-attachments/assets/5e72cd4e-6e28-4743-8262-5f41c6f33ef1" />
 
 ---
 
